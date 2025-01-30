@@ -18,7 +18,6 @@ export const eventsService = {
     },
     registerUserByEventId: async (participantData: ParticipantType, eventId: string) => {
         const event = await eventsInDbQueryRepository.getEventById(eventId)
-
         if (event) {
             const eventParticipants = event.participants
             const isAlreadyRegistered = eventParticipants.find((cur) => cur.email === participantData.email)
