@@ -1,5 +1,4 @@
 import {body} from "express-validator";
-import retryTimes = jest.retryTimes;
 
 export const validateName = [
     body("name").isString().withMessage("Name is required").isLength({
@@ -22,3 +21,5 @@ export const validateLocation = [
 export const validateMaxParticipants = [
     body("maxParticipants").isInt({min: 0}),
 ]
+
+
