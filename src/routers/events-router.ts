@@ -1,4 +1,4 @@
-import express, {Request, Response} from "express";
+import express, {Request, response, Response} from "express";
 import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody} from "../types/requestTypes";
 import {validateDate, validateLocation, validateMaxParticipants, validateName} from "../middleware/events-middleware";
 import {EventInputModel} from "../models/events/events-input-models";
@@ -25,7 +25,7 @@ export const getEventsRouter = () => {
         const isPagination = !!page && !!limit
         let registeredParticipants
         if (isPagination)
-            registeredParticipants = await eventsInDbQueryRepository.getEventsByParticipantsByEventIdWithPagination(_id,+page,+limit)
+            registeredParticipants = await eventsInDbQueryRepository.getEventsByParticipantsByEventIdWithPagination(_id, +page, +limit)
         else
             registeredParticipants = await eventsInDbQueryRepository.getEventParticipantsByEventId(_id)
 
@@ -42,10 +42,9 @@ export const getEventsRouter = () => {
         }
     })
     router.get("/:id", validateParamId, async (req: RequestWithParams<{
-        _id: string
+        id: string
     }>, res: Response<EventType | any>) => {
-        const _id = req.params._id;
-        console.log(_id)
+        const _id = req.params.id;
         try {
             const event: WithId<EventType> | null = await eventsInDbQueryRepository.getEventById(_id)
             if (!event) {
@@ -58,13 +57,14 @@ export const getEventsRouter = () => {
         }
     })
     router.get("/", async (req: Request, res: Response) => {
-
-        const events = await eventsInDbQueryRepository.getEvents()
-        if (!events.length) {
-            res.status(HTTP_STATUSES.NO_CONTENT_204).send({error: 'Not found '});
-            return
-        }
-        res.status(HTTP_STATUSES.OK_200).send(events)
+        const [page, limit] = [req.query.page, req.query.limit];
+        const isPagination = !!page && !!limit
+        let response
+        if (isPagination)
+            response =await eventsInDbQueryRepository.getEventsWithPagination(+page, +limit)
+        else
+            response = await eventsInDbQueryRepository.getEvents()
+        res.status(HTTP_STATUSES.OK_200).send(response)
     })
     router.delete("/:_id", validateParamId, async (req: RequestWithParams<{
         _id: string
