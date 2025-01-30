@@ -9,7 +9,7 @@ const startApp = async (port: number) => {
             console.log(`Server started on port ${port}`);
         })
     } catch (error) {
-        console.log(error);
+        console.log(error+"Starting app failed");
     }
 }
 startApp(port)

@@ -2,6 +2,9 @@ import {eventsInDbRepository} from "../repositories/events/events-in-db-reposito
 import {ParticipantsDataType} from "../routers/events-router";
 import {eventsCollection} from "../repositories/db";
 import {eventsInDbQueryRepository} from "../repositories/events/events-in-db-query-repository";
+import {mailNotifierManager} from "../managers/mailNotifier-manager";
+import {mailNotifierAdapter} from "../adapters/mailNotifier-adapter";
+import {generateEventRegistrationHtml} from "../utils/mailsHTMLGenerators";
 
 export const eventsService = {
     addEvent: async (name: string, date: number, location: string, maxParticipants: number) => {
@@ -17,9 +20,25 @@ export const eventsService = {
     },
     registerUserByEventId: async (participantData: ParticipantsDataType, eventId: string) => {
         const event = await eventsInDbQueryRepository.getEventById(eventId)
+
+        if (event) {
+            const eventParticipants = event.participants
+            const isAlreadyRegistered = eventParticipants.find((cur) => cur.email === participantData.email)
+            if (isAlreadyRegistered) {
+                return null
+            }
+        }
         if (!event || !(event.maxParticipants >= event.participants.length)) {
             return null
         }
-        return await eventsInDbRepository.updateEventsParticipants(participantData, eventId);
-    }
+        try {
+            await mailNotifierAdapter.sendEmailNotification(participantData.email,`${event.name} event registration`,generateEventRegistrationHtml(participantData.name,event.location,event.date))
+            return await eventsInDbRepository.updateEventsParticipants(participantData, eventId);
+
+        }catch (err){
+throw err;
+        }
+
+    },
+
 }

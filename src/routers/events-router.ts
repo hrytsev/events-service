@@ -10,8 +10,9 @@ import {validateId} from "../middleware/validateId";
 import {eventsInDbQueryRepository} from "../repositories/events/events-in-db-query-repository";
 import {WithId} from "mongodb";
 import {eventsInDbRepository} from "../repositories/events/events-in-db-repository";
-import {validateEmail, validateEventId} from "../middleware/users-middleware";
+import {validateEmail, validateEventId} from "../middleware/participants-middleware";
 import e from "express";
+import {ParticipantType} from "../repositories/db";
 
 export type FilterObjectType = {}
 // export type EventsQueryInputModel = {
@@ -28,10 +29,16 @@ export type ParticipantsDataType = {
 }
 export const getEventsRouter = () => {
     const router = express.Router();
+    router.get("/register",validateEventId,errorsHandler, async (req: RequestWithBody<{ eventId:string }>, res: Response) => {
+        const _id=req.body.eventId;
+        const registeredParticipants: ParticipantType[]|undefined =await eventsInDbQueryRepository.getEventParticipantsByEventId(_id)
+        res.status(HTTP_STATUSES.OK_200).send(registeredParticipants);
+        return
+    })
     router.post("/", validateName, validateDate, validateLocation, validateMaxParticipants, errorsHandler, async (req: RequestWithBody<EventInputModel>, res: Response<EventType | any>) => {
         const [name, date, location, maxParticipants] = [req.body.name, req.body.date, req.body.location, req.body.maxParticipants];
         try {
-            const addedEvent: EventType = await eventsService.addEvent(name, date, location, maxParticipants);
+            const addedEvent: EventType = await eventsService.addEvent(name, +date, location, maxParticipants);
             res.status(HTTP_STATUSES.OK_200).send(addedEvent)
         } catch (err) {
             res.status(HTTP_STATUSES.BAD_REQUEST_400).send({error: err});//errors handling
@@ -72,7 +79,7 @@ export const getEventsRouter = () => {
         }
 
     })
-    router.post("/register_user", validateName, validateEventId, validateEmail, errorsHandler, async (req: RequestWithBody<RegisterUserInputModel>, res: Response) => {
+    router.post("/register", validateName, validateEventId, validateEmail, errorsHandler, async (req: RequestWithBody<RegisterUserInputModel>, res: Response) => {
         const {name, email, eventId} = req.body;
         const participantData: ParticipantsDataType = {
             name,
@@ -86,9 +93,11 @@ export const getEventsRouter = () => {
             }
             res.status(HTTP_STATUSES.OK_200).send({participantData, eventId});
         } catch (err) {
+            console.log(err)
             res.status(HTTP_STATUSES.NOT_FOUND_404).send({error: err});//handle error
         }
 
     })
+
     return router;
 }
