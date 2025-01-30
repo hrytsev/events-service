@@ -7,11 +7,11 @@ export const eventsInDbQueryRepository = {
     getEventById: async (_id: string) => {
         return await eventsCollection.findOne({_id: new ObjectId(_id)});
     },
-    getEvents: async () => {
-        return await eventsCollection.find({}).toArray();
+    getEvents: async (filter:{}={}) => {
+        return await eventsCollection.find(filter).toArray();
     },
-    getEventsWithPagination: async (page: number, limit: number) => {
-        const data = await eventsCollection.find({}).skip((page - 1) * limit).limit(limit).toArray();
+    getEventsWithPagination: async (page: number, limit: number,filters:{}={}) => {
+        const data = await eventsCollection.find(filters).skip((page - 1) * limit).limit(limit).toArray();
         const totalPages = Math.ceil(await eventsCollection.countDocuments({}) / limit)
         return {
             data,

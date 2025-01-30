@@ -1,11 +1,17 @@
 import express, {Request, response, Response} from "express";
-import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody} from "../types/requestTypes";
+import {
+    RequestWithBody,
+    RequestWithParams,
+    RequestWithParamsAndBody,
+    RequestWithQuery,
+    RequestWithQueryAndParams
+} from "../types/requestTypes";
 import {validateDate, validateLocation, validateMaxParticipants, validateName} from "../middleware/events-middleware";
 import {EventInputModel} from "../models/events/events-input-models";
 import {eventsService} from "../services/events-service";
 import {HTTP_STATUSES} from "../utils/configs/HTTP_STATUSES";
 import {errorsHandler} from "../middleware/errors-handler";
-import {EventType} from "../types/events/event";
+import {EventFilters, EventType} from "../types/events/event";
 import {validateParamId} from "../middleware/validateParamId";
 import {eventsInDbQueryRepository} from "../repositories/events/events-in-db-query-repository";
 import {WithId} from "mongodb";
@@ -13,18 +19,18 @@ import {eventsInDbRepository} from "../repositories/events/events-in-db-reposito
 import {validateEmail} from "../middleware/participants-middleware";
 import {RegisterParticipantInputModel} from "../models/events/paricipants-input-models";
 import {ParticipantsDataType, ParticipantType} from "../types/events/participants";
-
+import {Pagination} from "../types/pagination";
+import {ID} from "../types/ID";
+import {RemoveUndefinedFieldsFormFilter} from "../utils/removeUndefinedFieldsFormFilter";
 
 export const getEventsRouter = () => {
     const router = express.Router();
-    router.get("/:id/participants", validateParamId, errorsHandler, async (req: RequestWithParams<{
-        id: string
-    }>, res: Response) => {
+    router.get("/:id/participants", validateParamId, errorsHandler, async (req: RequestWithQueryAndParams<Pagination, ID>, res: Response) => {
         const [page, limit] = [req.query.page, req.query.limit];
         const _id = req.params.id
         const isPagination = !!page && !!limit
         let registeredParticipants
-        if (isPagination)
+        if (isPagination && !isNaN(+page) && !isNaN(+limit))
             registeredParticipants = await eventsInDbQueryRepository.getEventsByParticipantsByEventIdWithPagination(_id, +page, +limit)
         else
             registeredParticipants = await eventsInDbQueryRepository.getEventParticipantsByEventId(_id)
@@ -56,14 +62,16 @@ export const getEventsRouter = () => {
             res.status(HTTP_STATUSES.BAD_REQUEST_400).send({error: err});//errors handling
         }
     })
-    router.get("/", async (req: Request, res: Response) => {
+    router.get("/", async (req: RequestWithQuery<Pagination & EventFilters>, res: Response) => {
         const [page, limit] = [req.query.page, req.query.limit];
+        const filtersRaw :EventFilters= { name: req.query.name ,  date: req.query.date ,  location: req.query.location }
+        const filters =RemoveUndefinedFieldsFormFilter(filtersRaw)
         const isPagination = !!page && !!limit
         let response
-        if (isPagination)
-            response =await eventsInDbQueryRepository.getEventsWithPagination(+page, +limit)
+        if (isPagination && !isNaN(+page) && !isNaN(+limit))
+            response = await eventsInDbQueryRepository.getEventsWithPagination(+page, +limit,filters)
         else
-            response = await eventsInDbQueryRepository.getEvents()
+            response = await eventsInDbQueryRepository.getEvents(filters)
         res.status(HTTP_STATUSES.OK_200).send(response)
     })
     router.delete("/:_id", validateParamId, async (req: RequestWithParams<{

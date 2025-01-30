@@ -1,5 +1,5 @@
 import {ObjectId} from "mongodb";
-import {ParticipantType} from "../../repositories/db";
+import {ParticipantType} from "./participants";
 
 export type EventType = {
     _id?:ObjectId
@@ -9,3 +9,10 @@ export type EventType = {
     maxParticipants: number;
     participants: ParticipantType[];
 }
+export type EventFilters={
+    name?: string,
+    date?: string,
+    location?: string,
+    [key: string]: string | undefined;
+}
+
