@@ -1,6 +1,7 @@
 import {EventType} from "../../types/events/event";
-import {eventsCollection, ParticipantType} from "../db";
+import {eventsCollection} from "../db";
 import {ObjectId} from "mongodb";
+import {ParticipantType} from "../../types/events/participants";
 
 export const eventsInDbRepository = {
     addEvent: async (event: EventType) => {

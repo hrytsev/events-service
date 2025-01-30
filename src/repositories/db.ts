@@ -6,10 +6,7 @@ const mongoUrl = 'mongodb://localhost:27017';
 const client = new MongoClient(mongoUrl);
 const coursesDb=client.db("eventsService")
 
-export type ParticipantType={
-    name:string,
-    email:string,
-}
+
 
 
 export const eventsCollection = coursesDb.collection<EventType>("events");

@@ -1,10 +1,8 @@
 import {eventsInDbRepository} from "../repositories/events/events-in-db-repository";
-import {ParticipantsDataType} from "../routers/events-router";
-import {eventsCollection} from "../repositories/db";
 import {eventsInDbQueryRepository} from "../repositories/events/events-in-db-query-repository";
-import {mailNotifierManager} from "../managers/mailNotifier-manager";
 import {mailNotifierAdapter} from "../adapters/mailNotifier-adapter";
 import {generateEventRegistrationHtml} from "../utils/mailsHTMLGenerators";
+import {ParticipantsDataType} from "../types/events/participants";
 
 export const eventsService = {
     addEvent: async (name: string, date: number, location: string, maxParticipants: number) => {

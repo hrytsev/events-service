@@ -6,7 +6,7 @@ export const validateEmail = [
     body("email").isEmail().withMessage("Email is required"),
 ]
 export const validateName = [
-    body("name").isString().withMessage("Name is required").isLength({min: 2, max: 30}),
+    body("name").isString().withMessage("Name is required").isLength({min: 2, max: 50}),
 ]
 export const validateEventId = [
     body("eventId")
