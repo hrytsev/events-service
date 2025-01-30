@@ -13,5 +13,9 @@ export const eventsInDbQueryRepository = {
     getEventParticipantsByEventId: async (eventId: string) => {
         const event = await eventsInDbQueryRepository.getEventById(eventId)
         return event?.participants
+    },
+    getEventsByParticipantsByEventIdWithPagination: async (eventId: string,page:number,limit:number) => {
+            const event = await eventsInDbQueryRepository.getEventById(eventId)
+            return event?.participants.slice((page-1)*limit,page*limit)
     }
 }

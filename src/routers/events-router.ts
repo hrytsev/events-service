@@ -1,4 +1,4 @@
-import express, { Request, Response} from "express";
+import express, {Request, Response} from "express";
 import {RequestWithBody, RequestWithParams, RequestWithParamsAndBody} from "../types/requestTypes";
 import {validateDate, validateLocation, validateMaxParticipants, validateName} from "../middleware/events-middleware";
 import {EventInputModel} from "../models/events/events-input-models";
@@ -15,13 +15,20 @@ import {RegisterParticipantInputModel} from "../models/events/paricipants-input-
 import {ParticipantsDataType, ParticipantType} from "../types/events/participants";
 
 
-
-
 export const getEventsRouter = () => {
     const router = express.Router();
-    router.get("/:id/participants",validateParamId,errorsHandler, async (req: RequestWithParams<{ id:string }>, res: Response) => {
-        const _id=req.params.id
-        const registeredParticipants: ParticipantType[]|undefined =await eventsInDbQueryRepository.getEventParticipantsByEventId(_id)
+    router.get("/:id/participants", validateParamId, errorsHandler, async (req: RequestWithParams<{
+        id: string
+    }>, res: Response) => {
+        const [page, limit] = [req.query.page, req.query.limit];
+        const _id = req.params.id
+        const isPagination = !!page && !!limit
+        let registeredParticipants
+        if (isPagination)
+            registeredParticipants = await eventsInDbQueryRepository.getEventsByParticipantsByEventIdWithPagination(_id,+page,+limit)
+        else
+            registeredParticipants = await eventsInDbQueryRepository.getEventParticipantsByEventId(_id)
+
         res.status(HTTP_STATUSES.OK_200).send(registeredParticipants);
         return
     })
@@ -34,7 +41,9 @@ export const getEventsRouter = () => {
             res.status(HTTP_STATUSES.BAD_REQUEST_400).send({error: err});//errors handling
         }
     })
-    router.get("/:id", validateParamId, async (req: RequestWithParams<{ _id: string }>, res: Response<EventType | any>) => {
+    router.get("/:id", validateParamId, async (req: RequestWithParams<{
+        _id: string
+    }>, res: Response<EventType | any>) => {
         const _id = req.params._id;
         console.log(_id)
         try {
@@ -69,16 +78,18 @@ export const getEventsRouter = () => {
         }
 
     })
-    router.post("/:id/register",validateParamId, validateName,  validateEmail, errorsHandler, async (req: RequestWithParamsAndBody<{id:string},RegisterParticipantInputModel>, res: Response) => {
+    router.post("/:id/register", validateParamId, validateName, validateEmail, errorsHandler, async (req: RequestWithParamsAndBody<{
+        id: string
+    }, RegisterParticipantInputModel>, res: Response) => {
         const {name, email} = req.body;
-        const eventId=req.params.id
+        const eventId = req.params.id
         const participantData: ParticipantsDataType = {
             name,
             email,
         }
         try {
-         const result=   await eventsService.registerUserByEventId(participantData, eventId)
-            if(!result){
+            const result = await eventsService.registerUserByEventId(participantData, eventId)
+            if (!result) {
                 res.status(HTTP_STATUSES.BAD_REQUEST_400).send({error: "Can`t register user anymore"});//handle error
                 return
             }
