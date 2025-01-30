@@ -2,7 +2,7 @@ import {eventsInDbRepository} from "../repositories/events/events-in-db-reposito
 import {eventsInDbQueryRepository} from "../repositories/events/events-in-db-query-repository";
 import {mailNotifierAdapter} from "../adapters/mailNotifier-adapter";
 import {generateEventRegistrationHtml} from "../utils/mailsHTMLGenerators";
-import {ParticipantsDataType} from "../types/events/participants";
+import {ParticipantType} from "../types/events/participants";
 
 export const eventsService = {
     addEvent: async (name: string, date: number, location: string, maxParticipants: number) => {
@@ -16,7 +16,7 @@ export const eventsService = {
         const result = await eventsInDbRepository.addEvent(newEvent)
         return {...newEvent, _id: result.insertedId}
     },
-    registerUserByEventId: async (participantData: ParticipantsDataType, eventId: string) => {
+    registerUserByEventId: async (participantData: ParticipantType, eventId: string) => {
         const event = await eventsInDbQueryRepository.getEventById(eventId)
 
         if (event) {
