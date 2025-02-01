@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    image: events-backend:latest
+    image: hrytsev/event-service:latest
     container_name: event-service-container
     ports:
       - "$PORT:$PORT"
