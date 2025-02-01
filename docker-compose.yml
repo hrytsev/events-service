@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  backend:
+    image: events-backend:latest
+    container_name: event-service-container
+    ports:
+      - "$PORT:$PORT"
+    environment:
+      - MONGODB_URI=mongodb://$LOGIN:$PASSWORD@mongodb-container:27017/eventService?authSource=admin
+    networks:
+          - event_network
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb-container
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=$LOGIN
+      - MONGO_INITDB_ROOT_PASSWORD=$PASSWORD
+    volumes:
+      - ./mongodb_data:/data/db
+    restart: always
+    networks:
+    - event_network
+volumes:
+  mongodb_data:
+
+networks:
+  event_network:
+    driver: bridge

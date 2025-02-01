@@ -9,18 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const app_1 = require("./app");
-const db_1 = require("./repositories/db");
-const port = process.env.PORT || 3000;
-const startApp = (port) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield (0, db_1.useDb)();
-        app_1.app.listen(port, () => {
-            console.log(`Server started on port ${port}`);
-        });
-    }
-    catch (error) {
-        console.log(error + "Starting app failed");
-    }
-});
-startApp(+port);
+exports.mailNotifierAdapter = void 0;
+const mailNotifier_manager_1 = require("../managers/mailNotifier-manager");
+exports.mailNotifierAdapter = {
+    sendEmailNotification: (email, subject, html) => __awaiter(void 0, void 0, void 0, function* () {
+        const mailData = {
+            email,
+            html,
+            auth: {
+                user: process.env.MAIL_USER || 'user',
+                pass: process.env.MAIL_PASS || 'pass',
+            },
+            from: 'hrytsevivan@gmail.com',
+            subject
+        };
+        const result = yield mailNotifier_manager_1.mailNotifierManager.sendEmailNotification(mailData);
+        return result;
+    })
+};

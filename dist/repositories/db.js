@@ -9,18 +9,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const app_1 = require("./app");
-const db_1 = require("./repositories/db");
-const port = process.env.PORT || 3000;
-const startApp = (port) => __awaiter(void 0, void 0, void 0, function* () {
+exports.useDb = exports.eventsCollection = void 0;
+const mongodb_1 = require("mongodb");
+const login = process.env.LOGIN || 'login';
+const password = process.env.PASSWORD || 'password';
+const mongoUrl = `mongodb://${login}:${password}@localhost:27017/eventService?authSource=admin`;
+const client = new mongodb_1.MongoClient(mongoUrl);
+const coursesDb = client.db("eventsService");
+exports.eventsCollection = coursesDb.collection("events");
+const useDb = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield (0, db_1.useDb)();
-        app_1.app.listen(port, () => {
-            console.log(`Server started on port ${port}`);
-        });
+        yield client.connect();
+        yield client.db('events_service').command({ ping: 1 });
+        console.log("Events db connected");
     }
     catch (error) {
-        console.log(error + "Starting app failed");
+        yield client.close();
     }
 });
-startApp(+port);
+exports.useDb = useDb;

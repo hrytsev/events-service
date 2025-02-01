@@ -1,7 +1,7 @@
 import {app} from "./app";
 import {useDb} from "./repositories/db";
 
-const port = 4200;
+const port = process.env.PORT||3000;
 const startApp = async (port: number) => {
     try {
         await useDb()
@@ -12,4 +12,4 @@ const startApp = async (port: number) => {
         console.log(error+"Starting app failed");
     }
 }
-startApp(port)
+startApp(+port)
